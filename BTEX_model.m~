@@ -10,7 +10,7 @@ clear all
 
 % Transport Coefficients
 m_tot = 8000;       % total mass of NAPL [kg]
-c_in = 0.5;       % Dissolved oxygen inflow concentration [mol/m3]
+c_in = 0.5;         % Dissolved oxygen inflow concentration [mol/m3]
 
 L = 10;             % length of aquifer [m] 
 W = 20;             % width of aquifer [m]
@@ -22,7 +22,7 @@ Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
 % te = 3600*(1*240);  % end time [s]
-te = 3600*(1*12)
+te = 3600*(1*12);
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -41,11 +41,6 @@ load('data.mat')
 n = wt*m_tot./MW;   % moles of each compound in initial mixture [mol]
 Xo = n./sum(n);     % molar fraction [-]
 
-% c_aq = initial water conc. at equilibrium  [mol/m3]
-c_aq_i = Xo.*Si./MW; 
-
-% calculate cnapl eq. 7.9
-
 % Requirement 1: Neumann-Number = 1/4
 % Requirement 2: Courant-Number Cr = dt*v/dx = 1
 % Solve for dx:
@@ -63,25 +58,32 @@ ncomp = 25;
 % Rows related to length coordinates
 % Columns related to components
 %c_aq = zeros(nx,ncomp);
+c_aq_i = Xo.*Si./MW;% initial water conc. at equilibrium  [mol/m3]
 c_aq = ones(nx,ncomp).*[c_aq_i,c_in(:,end)];
 
-% Matrix of Initial Total NAPL Mass - Compound and Oxygen
+% % Matrix of Initial Total NAPL Mass - Compound and Oxygen
+% % Rows related to length coordinates
+% % Columns related to components
+% m = ones(nx,1)*[(m_tot.*dx/L.*wt), 0];
+
+% Matrix of Initial NAPL Concentrations - Compound and Oxygen
 % Rows related to length coordinates
 % Columns related to components
-m = ones(nx,1)*[(m_tot.*dx/L.*wt), 0];
+%c_napl = 
+
+% calculate cnapl eq. 7.9
+
 
 % Matrix of Inflow Concentrations - Compound and Oxygen 
 % Columns related to components
 c_in = [zeros(1,ncomp-1), c_in];
-
-% Initial estimate of area for water flow 
-%Aw = ones(nx,ncomp).*poros.*H.*W;
 
 % initialize breakthrough curve
 BTC=zeros(0,ncomp);
 
 % Open figure and delete its content
 figure(1);clf
+
 % 
 % % Open video 
 % v = VideoWriter('transport_model.avi');
@@ -120,10 +122,10 @@ for t=dt:dt:te
     % =====================================================================
     % REACTION
     % =====================================================================
-   % =====================================================================
+    % =====================================================================
     % EQUILIBRATION
     % =====================================================================
-  
+    [c_aq,n_napl] = equilibrate(c_aq, n_napl, poros, Si, rho, MW, dx);
     % =====================================================================
     % GRAPHICAL OUTPUT
     % =====================================================================
@@ -132,7 +134,7 @@ for t=dt:dt:te
     figure(1)
     semilogy(x,c_aq);
     xlabel('x [m]');
-    ylabel('c [g/L]');
+    ylabel('c [mmol/L]');
     ylim([0 500]);
     legend(compound)
     title(sprintf('Concentration, t=%6.1fh',t/3600));
@@ -151,7 +153,7 @@ figure(3)
 %subplot(2,1,2)
 plot([dt:dt:te]/3600,BTC)
 xlabel('t [h]')
-ylabel('c [g/L]')
+ylabel('c [mmol/L]')
 ylim([0 100]);
 title(sprintf('Breakthrough Curve'))% n = %3.1f')),n))
 saveas(gcf, 'Breakthrough Curve.jpeg')

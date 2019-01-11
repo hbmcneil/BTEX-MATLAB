@@ -23,6 +23,9 @@ Si = [0 0.061 0.040 0.013 0.0022 0.00066 0.0002 9.0e-06 0.221 0.148 ...
     0.05 0.0182 0.0041 0.00112 0.000115 1.79 0.526 0.162 0.15 0.0752 ...
     42 1000 36 82.80];
 
+% solubilities in mol/m3
+Si = Si./MW;
+
 % Invidual gasoline compounds - initial conditions
 
 % weight percent of each compound in initial mixture [fraction]

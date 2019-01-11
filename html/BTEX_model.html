@@ -1,0 +1,393 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>BTEX_model</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-01-09"><meta name="DC.source" content="BTEX_model.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% =========================================================================</span>
+<span class="comment">% 1-D Simulation of Transport and Fate of BTEX</span>
+<span class="comment">% Hannah McNeil and Nicole Smith</span>
+<span class="comment">% University of T&uuml;bingen</span>
+<span class="comment">%</span>
+<span class="comment">% December, 2018</span>
+<span class="comment">% =========================================================================</span>
+
+clear <span class="string">all</span>
+
+<span class="comment">% Transport Coefficients</span>
+m_tot = 8000;       <span class="comment">% total mass of NAPL [kg]</span>
+c_in = 0.5;       <span class="comment">% Dissolved oxygen inflow concentration [mol/m3]</span>
+
+L = 10;             <span class="comment">% length of aquifer [m]</span>
+W = 20;             <span class="comment">% width of aquifer [m]</span>
+H = 2;              <span class="comment">% depth [m]</span>
+poros = 0.35;       <span class="comment">% porosity [-]</span>
+q = 1.1574e-05;     <span class="comment">% Specific Discharge [m/s]</span>
+alpha = 0.01;       <span class="comment">% Longitudinal Dispersivity [m]</span>
+Dp = 1e-9;          <span class="comment">% pore diffusion coefficient [m2/s] -- assumed</span>
+
+tin = 0;            <span class="comment">% begin time [s]</span>
+<span class="comment">% te = 3600*(1*240);  % end time [s]</span>
+te = 3600*(1*12)
+
+<span class="comment">% Derived Coefficients</span>
+A = H*W;            <span class="comment">% area [m2]</span>
+v = q/poros;        <span class="comment">% seepage velocity [m/s]</span>
+D = alpha*v+Dp;     <span class="comment">% dispersion coefficient [m2/s]</span>
+
+<span class="comment">% Load individual gasoline component data</span>
+<span class="comment">% Compounds         % compound names for legend</span>
+<span class="comment">% MW                % molecular weight [kg/mol]</span>
+<span class="comment">% rho               % density [kg/m3]</span>
+<span class="comment">% Si                % solubility constants at 20-25 C [kg/m3]</span>
+<span class="comment">% wt                % weight percent in initial mixture [fraction]</span>
+load(<span class="string">'data.mat'</span>)
+
+<span class="comment">% Invidual gasoline compounds - derived initial conditions</span>
+n = wt*m_tot./MW;   <span class="comment">% moles of each compound in initial mixture [mol]</span>
+Xo = n./sum(n);     <span class="comment">% molar fraction [-]</span>
+c_aq_i = Xo.*Si./MW;<span class="comment">% initial water conc. at equilibrium  [mol/m3]</span>
+
+<span class="comment">% calculate cnapl eq. 7.9</span>
+
+<span class="comment">% Requirement 1: Neumann-Number = 1/4</span>
+<span class="comment">% Requirement 2: Courant-Number Cr = dt*v/dx = 1</span>
+<span class="comment">% Solve for dx:</span>
+dx = 4*D/v;
+<span class="comment">% Solve for dt</span>
+dt = dx/v;
+
+x=0.5*dx:dx:L;
+nx = length(x);
+
+<span class="comment">% Number of Components [given compounds + oxygen]</span>
+ncomp = 25;
+
+<span class="comment">% Matrix of Aqueous Concentrations - Compound and Oxygen</span>
+<span class="comment">% Rows related to length coordinates</span>
+<span class="comment">% Columns related to components</span>
+<span class="comment">%c_aq = zeros(nx,ncomp);</span>
+c_aq = ones(nx,ncomp).*[c_aq_i,c_in(:,end)];
+
+<span class="comment">% Matrix of Initial Total NAPL Mass - Compound and Oxygen</span>
+<span class="comment">% Rows related to length coordinates</span>
+<span class="comment">% Columns related to components</span>
+m = ones(nx,1)*[(m_tot.*dx/L.*wt), 0];
+
+<span class="comment">% Matrix of Inflow Concentrations - Compound and Oxygen</span>
+<span class="comment">% Columns related to components</span>
+c_in = [zeros(1,ncomp-1), c_in];
+
+<span class="comment">% Initial estimate of area for water flow</span>
+<span class="comment">%Aw = ones(nx,ncomp).*poros.*H.*W;</span>
+
+<span class="comment">% initialize breakthrough curve</span>
+BTC=zeros(0,ncomp);
+
+<span class="comment">% Open figure and delete its content</span>
+figure(1);clf
+<span class="comment">%</span>
+<span class="comment">% % Open video</span>
+<span class="comment">% v = VideoWriter('transport_model.avi');</span>
+<span class="comment">% open(v);</span>
+
+<span class="comment">% =========================================================================</span>
+<span class="comment">% Loop over all timepoints</span>
+<span class="comment">% =========================================================================</span>
+<span class="keyword">for</span> t=dt:dt:te
+
+    BTC=[BTC;c_aq(end,:)];
+
+    <span class="comment">% =====================================================================</span>
+    <span class="comment">% ADVECTION</span>
+    <span class="comment">% =====================================================================</span>
+    <span class="comment">% Advection a Courant-number 1 implies that the concentrations are</span>
+    <span class="comment">% moved by exactly one box. The values in the last box are moved out.</span>
+    <span class="comment">% The first box receives the inflow concentration.</span>
+
+    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));
+    c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
+
+    <span class="comment">% =====================================================================</span>
+    <span class="comment">% DISPERSION</span>
+    <span class="comment">% =====================================================================</span>
+
+<span class="comment">%     Jd=(c_aq(1:end-1,:)-c_aq(2:end,:))/dx*D;</span>
+<span class="comment">%     % add a dispersive flux of zero at the inflow boundary and assume that</span>
+<span class="comment">%     % the dispersive flux at the outflow is identical to that at the last</span>
+<span class="comment">%     % internal interface</span>
+<span class="comment">%     Jd =[zeros(1,ncomp);Jd;Jd(end,:)];</span>
+<span class="comment">%</span>
+<span class="comment">%     % concentration change due to divergence of dispersive flux</span>
+<span class="comment">%     c_aq = c_aq + dt/dx*(Jd(1:end-1,:)-Jd(2:end,:));</span>
+
+    <span class="comment">% =====================================================================</span>
+    <span class="comment">% REACTION</span>
+    <span class="comment">% =====================================================================</span>
+   <span class="comment">% =====================================================================</span>
+    <span class="comment">% EQUILIBRATION</span>
+    <span class="comment">% =====================================================================</span>
+
+    <span class="comment">% =====================================================================</span>
+    <span class="comment">% GRAPHICAL OUTPUT</span>
+    <span class="comment">% =====================================================================</span>
+
+    <span class="comment">% Graphical output every 10 minutes</span>
+    figure(1)
+    semilogy(x,c_aq);
+    xlabel(<span class="string">'x [m]'</span>);
+    ylabel(<span class="string">'c [mmol/L]'</span>);
+    ylim([0 500]);
+    legend(compound)
+    title(sprintf(<span class="string">'Concentration, t=%6.1fh'</span>,t/3600));
+    drawnow
+
+<span class="comment">%     % Graphical video</span>
+<span class="comment">%         frame = getframe(gcf);</span>
+<span class="comment">%         writeVideo(v,frame)</span>
+
+<span class="keyword">end</span>
+
+<span class="comment">% % End video</span>
+<span class="comment">% close(v)</span>
+
+figure(3)
+<span class="comment">%subplot(2,1,2)</span>
+plot([dt:dt:te]/3600,BTC)
+xlabel(<span class="string">'t [h]'</span>)
+ylabel(<span class="string">'c [mmol/L]'</span>)
+ylim([0 100]);
+title(sprintf(<span class="string">'Breakthrough Curve'</span>))<span class="comment">% n = %3.1f')),n))</span>
+saveas(gcf, <span class="string">'Breakthrough Curve.jpeg'</span>)
+</pre><pre class="codeoutput">
+te =
+
+       43200
+
+</pre><img vspace="5" hspace="5" src="BTEX_model_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% =========================================================================
+% 1-D Simulation of Transport and Fate of BTEX 
+% Hannah McNeil and Nicole Smith
+% University of Tübingen
+%
+% December, 2018 
+% =========================================================================
+
+clear all
+
+% Transport Coefficients
+m_tot = 8000;       % total mass of NAPL [kg]
+c_in = 0.5;       % Dissolved oxygen inflow concentration [mol/m3]
+
+L = 10;             % length of aquifer [m] 
+W = 20;             % width of aquifer [m]
+H = 2;              % depth [m] 
+poros = 0.35;       % porosity [-]
+q = 1.1574e-05;     % Specific Discharge [m/s]
+alpha = 0.01;       % Longitudinal Dispersivity [m]
+Dp = 1e-9;          % pore diffusion coefficient [m2/s] REPLACE_WITH_DASH_DASH assumed
+
+tin = 0;            % begin time [s]
+% te = 3600*(1*240);  % end time [s]
+te = 3600*(1*12)
+
+% Derived Coefficients
+A = H*W;            % area [m2]
+v = q/poros;        % seepage velocity [m/s]
+D = alpha*v+Dp;     % dispersion coefficient [m2/s]
+
+% Load individual gasoline component data 
+% Compounds         % compound names for legend
+% MW                % molecular weight [kg/mol]
+% rho               % density [kg/m3]
+% Si                % solubility constants at 20-25 C [kg/m3]
+% wt                % weight percent in initial mixture [fraction]
+load('data.mat')
+
+% Invidual gasoline compounds - derived initial conditions 
+n = wt*m_tot./MW;   % moles of each compound in initial mixture [mol]
+Xo = n./sum(n);     % molar fraction [-]
+c_aq_i = Xo.*Si./MW;% initial water conc. at equilibrium  [mol/m3]
+
+% calculate cnapl eq. 7.9
+
+% Requirement 1: Neumann-Number = 1/4
+% Requirement 2: Courant-Number Cr = dt*v/dx = 1
+% Solve for dx:
+dx = 4*D/v;
+% Solve for dt
+dt = dx/v;
+
+x=0.5*dx:dx:L;
+nx = length(x);
+
+% Number of Components [given compounds + oxygen] 
+ncomp = 25;
+
+% Matrix of Aqueous Concentrations - Compound and Oxygen
+% Rows related to length coordinates
+% Columns related to components
+%c_aq = zeros(nx,ncomp);
+c_aq = ones(nx,ncomp).*[c_aq_i,c_in(:,end)];
+
+% Matrix of Initial Total NAPL Mass - Compound and Oxygen
+% Rows related to length coordinates
+% Columns related to components
+m = ones(nx,1)*[(m_tot.*dx/L.*wt), 0];
+
+% Matrix of Inflow Concentrations - Compound and Oxygen 
+% Columns related to components
+c_in = [zeros(1,ncomp-1), c_in];
+
+% Initial estimate of area for water flow 
+%Aw = ones(nx,ncomp).*poros.*H.*W;
+
+% initialize breakthrough curve
+BTC=zeros(0,ncomp);
+
+% Open figure and delete its content
+figure(1);clf
+% 
+% % Open video 
+% v = VideoWriter('transport_model.avi');
+% open(v);
+
+% =========================================================================
+% Loop over all timepoints
+% =========================================================================
+for t=dt:dt:te
+
+    BTC=[BTC;c_aq(end,:)];
+    
+    % =====================================================================
+    % ADVECTION
+    % =====================================================================
+    % Advection a Courant-number 1 implies that the concentrations are
+    % moved by exactly one box. The values in the last box are moved out.
+    % The first box receives the inflow concentration.
+    
+    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));
+    c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
+    
+    % =====================================================================
+    % DISPERSION
+    % =====================================================================
+
+%     Jd=(c_aq(1:end-1,:)-c_aq(2:end,:))/dx*D;
+%     % add a dispersive flux of zero at the inflow boundary and assume that
+%     % the dispersive flux at the outflow is identical to that at the last
+%     % internal interface
+%     Jd =[zeros(1,ncomp);Jd;Jd(end,:)];
+%     
+%     % concentration change due to divergence of dispersive flux 
+%     c_aq = c_aq + dt/dx*(Jd(1:end-1,:)-Jd(2:end,:));
+    
+    % =====================================================================
+    % REACTION
+    % =====================================================================
+   % =====================================================================
+    % EQUILIBRATION
+    % =====================================================================
+  
+    % =====================================================================
+    % GRAPHICAL OUTPUT
+    % =====================================================================
+   
+    % Graphical output every 10 minutes
+    figure(1)
+    semilogy(x,c_aq);
+    xlabel('x [m]');
+    ylabel('c [mmol/L]');
+    ylim([0 500]);
+    legend(compound)
+    title(sprintf('Concentration, t=%6.1fh',t/3600));
+    drawnow
+    
+%     % Graphical video 
+%         frame = getframe(gcf);
+%         writeVideo(v,frame)
+    
+end
+
+% % End video 
+% close(v) 
+
+figure(3)
+%subplot(2,1,2)
+plot([dt:dt:te]/3600,BTC)
+xlabel('t [h]')
+ylabel('c [mmol/L]')
+ylim([0 100]);
+title(sprintf('Breakthrough Curve'))% n = %3.1f')),n))
+saveas(gcf, 'Breakthrough Curve.jpeg')
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
