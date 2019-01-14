@@ -21,8 +21,7 @@ alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(1*240);  % end time [s]
-% te = 3600*(1*12);
+te = 3600*(1*500);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -31,11 +30,11 @@ D = alpha*v+Dp;     % dispersion coefficient [m2/s]
 
 % Load individual gasoline component data 
 % Compounds         % compound names for legend
-% MW                % molecular weight [kg/mol]
 % rho               % density [kg/m3]
+% MW                % molecular weight [kg/mol]
 % Si                % solubility constants at 20-25 C [kg/m3]
 % wt                % weight percent in initial mixture [fraction]
-load('data.mat')
+[compound, rho, MW, Si, wt] = BTEX_data();
 
 % Requirement 1: Neumann-Number = 1/4
 % Requirement 2: Courant-Number Cr = dt*v/dx = 1
@@ -50,39 +49,24 @@ nx = length(x);
 % Number of Components [given compounds + oxygen] 
 ncomp = 25;
 
-
-
-% % Matrix of Initial Total NAPL Mass - Compound and Oxygen
-% % Rows related to length coordinates
-% % Columns related to components
-% m = ones(nx,1)*[(m_tot.*dx/L.*wt), 0];
-
-% Invidual gasoline compounds - derived initial conditions 
-n = wt*m_tot./(MW*nx);   % moles of each compound in initial mixture [mol] per cell
-Xo = n./sum(n);     % molar fraction [-]
-n_napl = repmat(n,nx,1);
-% Matrix of Initial NAPL Concentrations - Compound and Oxygen
+% Matrix of Initial NAPL moles - Compound
 % Rows related to length coordinates
 % Columns related to components
-%c_napl = 
-
-% calculate cnapl eq. 7.9
+n = wt*m_tot./(MW*nx);   % moles of each compound in initial mixture [mol] per cell
+Xo = n./sum(n);          % molar fraction [-]
+n_napl = repmat(n,nx,1); % moles of each compound over whole domain
 
 % Matrix of Aqueous Concentrations - Compound and Oxygen
-% Rows related to length coordinates
-% Columns related to components
-%c_aq = zeros(nx,ncomp);
-c_aq_i = Xo.*Si;% initial water conc. at equilibrium  [mol/m3]
+c_aq_i = [Xo.*Si,0];         % initial water conc. at equilibrium  [mol/m3]
 c_aq = repmat(c_aq_i,nx,1);
 c_aq_i = c_aq;
-%c_aq = ones(nx,ncomp).*[c_aq_i,c_in(:,end)];
 
 % Matrix of Inflow Concentrations - Compound and Oxygen 
 % Columns related to components
-c_in = [zeros(1,ncomp-1)];%, c_in];
+c_in = [zeros(1,ncomp-1), c_in];
 
 % initialize breakthrough curve
-BTC=zeros(0,ncomp-1);
+BTC=zeros(0,ncomp);
 
 % Open figure and delete its content
 figure(1);clf
@@ -116,7 +100,7 @@ for t=dt:dt:te
     % add a dispersive flux of zero at the inflow boundary and assume that
     % the dispersive flux at the outflow is identical to that at the last
     % internal interface
-    Jd =[zeros(1,ncomp-1);Jd;Jd(end,:)];
+    Jd =[zeros(1,ncomp);Jd;Jd(end,:)];
     
     % concentration change due to divergence of dispersive flux 
     c_aq = c_aq + dt/dx*(Jd(1:end-1,:)-Jd(2:end,:));
@@ -135,10 +119,11 @@ for t=dt:dt:te
     % Graphical output every 10 minutes
     figure(1)
     plot(x,c_aq./c_aq_i);
+%     semilogy(x,c_aq);
     xlabel('x [m]');
     ylabel('c [mmol/L]');
     %ylim([0 500]);
-    legend(compound(1:24))
+    legend('Location', 'eastoutside', compound)
     title(sprintf('Concentration, t=%6.1fh',t/3600));
     drawnow
     
@@ -151,13 +136,40 @@ end
 % % End video 
 % close(v) 
 
+co = jet(8);
+set(groot,'defaultAxesColorOrder',co)
+
 figure(3)
-%subplot(2,1,2)
-plot([dt:dt:te]/3600,BTC)
+subplot(2,2,1)
+plot([dt:dt:te]/3600,BTC(:,1:8)./c_aq_i)
 xlabel('t [h]')
 ylabel('c [mmol/L]')
-ylim([0 100]);
-title(sprintf('Breakthrough Curve'))% n = %3.1f')),n))
+legend('Location', 'eastoutside', compound(:,1:8))
+title('Breakthrough Curve - Alkanes')
+
+subplot(2,2,2)
+plot([dt:dt:te]/3600,BTC(:,9:15))
+xlabel('t [h]')
+ylabel('c [mmol/L]')
+legend('Location', 'eastoutside', compound(:,9:15))
+title('Breakthrough Curve - Alkenes')
+
+set(groot,'defaultAxesColorOrder','remove')
+
+subplot(2,2,3)
+plot([dt:dt:te]/3600,BTC(:,16:19))
+xlabel('t [h]')
+ylabel('c [mmol/L]')
+legend('Location', 'eastoutside', compound(:,16:19))
+title('Breakthrough Curve - BTEX')
+
+subplot(2,2,4)
+plot([dt:dt:te]/3600,BTC(:,20:24))
+xlabel('t [h]')
+ylabel('c [mmol/L]')
+legend('Location', 'eastoutside', compound(:,20:24))
+title('Breakthrough Curve - Additives')
+
 saveas(gcf, 'Breakthrough Curve.jpeg')
 
 

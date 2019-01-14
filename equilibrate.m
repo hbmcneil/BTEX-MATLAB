@@ -1,7 +1,10 @@
-function [c_aq,n_napl] = equilibrate(c_aq_old, n_napl_old, poros, Si, rho,...
-    MW, dx,A)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [c_aq,n_napl] = equilibrate(c_aq_old, n_napl_old, poros, Si, rho, MW, dx,A)
+%EQUILIBRATE Function equilibrating between aqueous and free phase napl
+%   Equilibration between free phase napl and aqueous water
+%   Raoult's law is used to equilibrate
+%   Picard's iteration is used to calculate moles in napl phase
+%   Aqueous concentration is re-equilibrated using moles in napl and mass
+%   balance
 
 % initialize with old values
 c_aq = c_aq_old;
