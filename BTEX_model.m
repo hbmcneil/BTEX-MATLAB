@@ -21,7 +21,7 @@ alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(1*500);  % end time [s]
+te = 3600*(1*240);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -52,14 +52,14 @@ ncomp = 25;
 % Matrix of Initial NAPL moles - Compound
 % Rows related to length coordinates
 % Columns related to components
-n = wt*m_tot./(MW*nx);   % moles of each compound in initial mixture [mol] per cell
-Xo = n./sum(n);          % molar fraction [-]
-n_napl = repmat(n,nx,1); % moles of each compound over whole domain
+n = wt*m_tot./(MW*nx);      % moles of each compound in initial mixture [mol] per cell
+Xo = n./sum(n);             % molar fraction [-]
+n_napl = repmat(n,nx,1);    % moles of each compound over whole domain
 
 % Matrix of Aqueous Concentrations - Compound and Oxygen
 c_aq_i = [Xo.*Si,0];         % initial water conc. at equilibrium  [mol/m3]
-c_aq = repmat(c_aq_i,nx,1);
-c_aq_i = c_aq;
+c_aq = repmat(c_aq_i,nx,1);  % water conc over entire domain
+c_aq_i = c_aq;               % set initial water conc as matrix over domain
 
 % Matrix of Inflow Concentrations - Compound and Oxygen 
 % Columns related to components
@@ -76,6 +76,7 @@ figure(1);clf
 % v = VideoWriter('transport_model.avi');
 % open(v);
 
+ctr=1;
 % =========================================================================
 % Loop over all timepoints
 % =========================================================================
@@ -111,26 +112,27 @@ for t=dt:dt:te
     % =====================================================================
     % EQUILIBRATION
     % =====================================================================
-    [c_aq(:,1:24),n_napl] = equilibrate(c_aq(:,1:24), n_napl, poros, Si, rho, MW, dx , A);
+    [c_aq(:,1:24),n_napl] = equilibrate(c_aq(:,1:24), n_napl, poros, Si, rho, MW, dx, A);
     % =====================================================================
     % GRAPHICAL OUTPUT
     % =====================================================================
    
     % Graphical output every 10 minutes
-    figure(1)
-    plot(x,c_aq./c_aq_i);
-%     semilogy(x,c_aq);
-    xlabel('x [m]');
-    ylabel('c [mmol/L]');
-    %ylim([0 500]);
-    legend('Location', 'eastoutside', compound)
-    title(sprintf('Concentration, t=%6.1fh',t/3600));
-    drawnow
-    
+    if mod(ctr,100)==0
+        figure(1)
+        plot(x,c_aq./c_aq_i);
+    %     semilogy(x,c_aq);
+        xlabel('x [m]');
+        ylabel('c [mmol/L]');
+        %ylim([0 500]);
+        legend('Location', 'eastoutside', compound)
+        title(sprintf('Concentration, t=%6.1fh',t/3600));
+        drawnow
+    end
 %     % Graphical video 
 %         frame = getframe(gcf);
 %         writeVideo(v,frame)
-    
+    ctr=ctr+1;
 end
 
 % % End video 
@@ -141,7 +143,7 @@ set(groot,'defaultAxesColorOrder',co)
 
 figure(3)
 subplot(2,2,1)
-plot([dt:dt:te]/3600,BTC(:,1:8)./c_aq_i)
+semilogy([dt:dt:te]/3600,BTC(:,1:8))
 xlabel('t [h]')
 ylabel('c [mmol/L]')
 legend('Location', 'eastoutside', compound(:,1:8))
@@ -169,7 +171,7 @@ xlabel('t [h]')
 ylabel('c [mmol/L]')
 legend('Location', 'eastoutside', compound(:,20:24))
 title('Breakthrough Curve - Additives')
-
+save('data.mat');
 saveas(gcf, 'Breakthrough Curve.jpeg')
 
 
