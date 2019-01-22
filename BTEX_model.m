@@ -21,7 +21,7 @@ alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(1*240);  % end time [s]
+te = 3600*(1*24*10);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -116,15 +116,20 @@ for t=dt:dt:te
     % =====================================================================
     % GRAPHICAL OUTPUT
     % =====================================================================
-   
+    
+    % Color for plots 
+%     co = color();
+    co = [jet(8);jet(7);autumn(4);winter(5);cool(1)];
+    set(groot,'defaultAxesColorOrder',co)
+    
     % Graphical output every 10 minutes
     if mod(ctr,100)==0
         figure(1)
-        plot(x,c_aq./c_aq_i);
+        plot(x,c_aq./[c_aq_i(1,1:24),c_in(:,25)]);
     %     semilogy(x,c_aq);
         xlabel('x [m]');
-        ylabel('c [mmol/L]');
-        %ylim([0 500]);
+        ylabel('c/c_0 [-]');
+        ylim([0 2]);
         legend('Location', 'eastoutside', compound)
         title(sprintf('Concentration, t=%6.1fh',t/3600));
         drawnow
@@ -138,43 +143,37 @@ end
 % % End video 
 % close(v) 
 
-co = jet(8);
+co = color();
 set(groot,'defaultAxesColorOrder',co)
 
 figure(3)
 subplot(2,2,1)
-semilogy([dt:dt:te]/3600,BTC(:,1:8))
+% plot([dt:dt:te]/3600,BTC(:,[1:8,25])./[c_aq_i(1,1:8),c_in(:,25)])
+plot([dt:dt:te]/3600,BTC(:,[1:8,25]))
 xlabel('t [h]')
-ylabel('c [mmol/L]')
-legend('Location', 'eastoutside', compound(:,1:8))
+ylabel('c/c_0 [-]')
+legend('Location', 'eastoutside', compound(:,[1:8,25]))
 title('Breakthrough Curve - Alkanes')
 
 subplot(2,2,2)
-plot([dt:dt:te]/3600,BTC(:,9:15))
+plot([dt:dt:te]/3600,BTC(:,[9:15,25])./[c_aq_i(1,9:15),c_in(:,25)])
 xlabel('t [h]')
-ylabel('c [mmol/L]')
-legend('Location', 'eastoutside', compound(:,9:15))
+ylabel('c/c_0 [-]')
+legend('Location', 'eastoutside', compound(:,[9:15,25]))
 title('Breakthrough Curve - Alkenes')
 
-set(groot,'defaultAxesColorOrder','remove')
-
 subplot(2,2,3)
-plot([dt:dt:te]/3600,BTC(:,16:19))
+plot([dt:dt:te]/3600,BTC(:,[16:19,25])./[c_aq_i(1,16:19),c_in(:,25)])
 xlabel('t [h]')
-ylabel('c [mmol/L]')
-legend('Location', 'eastoutside', compound(:,16:19))
+ylabel('c/c_0 [-]')
+legend('Location', 'eastoutside', compound(:,[16:19,25]))
 title('Breakthrough Curve - BTEX')
 
 subplot(2,2,4)
-plot([dt:dt:te]/3600,BTC(:,20:24))
+plot([dt:dt:te]/3600,BTC(:,20:25)./[c_aq_i(1,20:24),c_in(:,25)])
 xlabel('t [h]')
-ylabel('c [mmol/L]')
-legend('Location', 'eastoutside', compound(:,20:24))
+ylabel('c/c_0 [-]')
+legend('Location', 'eastoutside', compound(:,20:25))
 title('Breakthrough Curve - Additives')
 save('data.mat');
 saveas(gcf, 'Breakthrough Curve.jpeg')
-
-
-
-
-
