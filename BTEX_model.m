@@ -10,7 +10,7 @@ clear all
 
 % Transport Coefficients
 m_tot = 8000;       % total mass of NAPL [kg]
-c_in = 0.5;         % Dissolved oxygen inflow concentration [mol/m3]
+c_in = 0.2502;      % Dissolved oxygen inflow concentration [mol/m3]
 
 L = 10;             % length of aquifer [m] 
 W = 20;             % width of aquifer [m]
@@ -21,7 +21,7 @@ alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(1*24*10);  % end time [s]
+te = 3600*(1*2400);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -34,7 +34,7 @@ D = alpha*v+Dp;     % dispersion coefficient [m2/s]
 % MW                % molecular weight [kg/mol]
 % Si                % solubility constants at 20-25 C [kg/m3]
 % wt                % weight percent in initial mixture [fraction]
-[compound, rho, MW, Si, wt] = BTEX_data();
+[compound, rho, MW, Si, wt, carbon, fcfb, fcfa, fbfa] = BTEX_data();
 
 % Requirement 1: Neumann-Number = 1/4
 % Requirement 2: Courant-Number Cr = dt*v/dx = 1
@@ -72,9 +72,9 @@ BTC=zeros(0,ncomp);
 figure(1);clf
 
 % 
-% % Open video 
-% v = VideoWriter('transport_model.avi');
-% open(v);
+% Open video 
+v = VideoWriter('transport_model.avi');
+open(v);
 
 ctr=1;
 % =========================================================================
@@ -96,7 +96,8 @@ for t=dt:dt:te
     % =====================================================================
     % DISPERSION
     % =====================================================================
-
+    
+    % Calculation of dispersive fluxes at the interior interfaces
     Jd=(c_aq(1:end-1,:)-c_aq(2:end,:))/dx*D;
     % add a dispersive flux of zero at the inflow boundary and assume that
     % the dispersive flux at the outflow is identical to that at the last
@@ -107,26 +108,31 @@ for t=dt:dt:te
     c_aq = c_aq + dt/dx*(Jd(1:end-1,:)-Jd(2:end,:));
     
     % =====================================================================
-    % REACTION
-    % =====================================================================
-    % =====================================================================
     % EQUILIBRATION
     % =====================================================================
     [c_aq(:,1:24),n_napl] = equilibrate(c_aq(:,1:24), n_napl, poros, Si, rho, MW, dx, A);
+    
+    % =====================================================================
+    % REACTION
+    % =====================================================================
+    
+    [c_aq, n_napl] = degrade(c_aq, n_napl, fcfb, fcfa, fbfa, poros, Si, rho, MW, dx, A);
+    
     % =====================================================================
     % GRAPHICAL OUTPUT
     % =====================================================================
     
     % Color for plots 
-%     co = color();
-    co = [jet(8);jet(7);autumn(4);winter(5);cool(1)];
-    set(groot,'defaultAxesColorOrder',co)
+    co = color();
+%     co = [jet(8);jet(7);autumn(4);winter(5);cool(1)];
+    set(groot,'defaultAxesColorOrder',co);
+    set(0, 'DefaultLineLineWidth', 2);
+    set(gca,'DefaultTextFontSize',18);
     
-    % Graphical output every 10 minutes
-    if mod(ctr,100)==0
+%    Graphical output every 10 minutes
+    if mod(ctr,10)==0
         figure(1)
         plot(x,c_aq./[c_aq_i(1,1:24),c_in(:,25)]);
-    %     semilogy(x,c_aq);
         xlabel('x [m]');
         ylabel('c/c_0 [-]');
         ylim([0 2]);
@@ -134,17 +140,17 @@ for t=dt:dt:te
         title(sprintf('Concentration, t=%6.1fh',t/3600));
         drawnow
     end
-%     % Graphical video 
-%         frame = getframe(gcf);
-%         writeVideo(v,frame)
+    % Graphical video 
+        frame = getframe(gcf);
+        writeVideo(v,frame)
     ctr=ctr+1;
 end
 
-% % End video 
-% close(v) 
+% End video 
+close(v) 
 
-co = color();
-set(groot,'defaultAxesColorOrder',co)
+
+set(groot,'defaultAxesColorOrder',co([1:8,25],:))
 
 figure(3)
 subplot(2,2,1)
@@ -155,6 +161,8 @@ ylabel('c/c_0 [-]')
 legend('Location', 'eastoutside', compound(:,[1:8,25]))
 title('Breakthrough Curve - Alkanes')
 
+set(groot,'defaultAxesColorOrder',co([9:15,25],:))
+
 subplot(2,2,2)
 plot([dt:dt:te]/3600,BTC(:,[9:15,25])./[c_aq_i(1,9:15),c_in(:,25)])
 xlabel('t [h]')
@@ -162,12 +170,16 @@ ylabel('c/c_0 [-]')
 legend('Location', 'eastoutside', compound(:,[9:15,25]))
 title('Breakthrough Curve - Alkenes')
 
+set(groot,'defaultAxesColorOrder',co([16:19,25],:))
+
 subplot(2,2,3)
 plot([dt:dt:te]/3600,BTC(:,[16:19,25])./[c_aq_i(1,16:19),c_in(:,25)])
 xlabel('t [h]')
 ylabel('c/c_0 [-]')
 legend('Location', 'eastoutside', compound(:,[16:19,25]))
 title('Breakthrough Curve - BTEX')
+
+set(groot,'defaultAxesColorOrder',co([20:25],:))
 
 subplot(2,2,4)
 plot([dt:dt:te]/3600,BTC(:,20:25)./[c_aq_i(1,20:24),c_in(:,25)])

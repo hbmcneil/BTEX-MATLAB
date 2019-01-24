@@ -23,7 +23,7 @@ for i=1:size(c_aq_old,1)
         it = it+1;
         % save step for convergence criterion
         n_napl_temp = n_napl(i,:);
-        % Picard equation
+        % Picard iteration to solve for moles of napl
         n_napl(i,:) = n_tot./(1+Si./sum(n_napl(i,:)) * (poros*dx*A-sum(n_napl(i,:).*MW./rho)) ) ;
     end
     if it > 100

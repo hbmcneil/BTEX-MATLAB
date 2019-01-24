@@ -67,6 +67,34 @@ Fe_mass = (((wt./100).*m_tot.*1000)./MW).*Fe_prop.*55.845;
 
 % print results and finish calculation for total FE required and time 
 
+% ======================================================================= %
+% Task 4: Calculating Plume Length
+% ======================================================================= %
+
+% do I need to use seperate variables or the same as btexmodel? 
+
+% M = H or z of aquifer [m]
+M = 2; 
+
+%vertical transverse dispersivity [L] -- pg.12 EM2 5-20x smaller than alpha
+%[chose 10x smaller]
+alpha_t = 0.001;
+
+%concentration of donor = NAPL concentration [mg/L] **check if mg/L is unit
+%or mol/m3
+c_d0 = c_aq(:,1:24);
+
+%concentration of acceptor = oxygen concentration [mg/L]
+c_a0 = 8;
+
+%stoichiometric ratio [-]
+gamma = C./COD_prop;
+
+% Length of Plume if pi^2*alpha_l*alpha_t/M^2 << 1
+if pi^2*alpha*alpha_t/M^2 < 1
+    L_plume = ((4*M^2)/(pi*alpha_t))*(log((4/pi)*((gamma.*c_d0 + c_a0)/c_a0)));
+end
+
 
 
 
