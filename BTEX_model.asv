@@ -23,7 +23,7 @@ alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(24*365*1);  % end time [s]
+te = 3600*(24*);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -132,16 +132,16 @@ for t=dt:dt:te
     set(gca,'DefaultTextFontSize',18);
     
 %    Graphical output every 10 minutes
-    if mod(ctr,1000)==0
+    if mod(ctr,259930)==0
         figure(1)
         plot(x,c_aq./[c_aq_i(1,1:24),c_in(:,25)]);
         xlabel('Distance [m]');
         ylabel('Normalized Concentration c/c_0 [-]');
-        ylim([0 3]);
+        ylim([0 2]);
         legend(compound, 'Location', 'eastoutside')
-        title(sprintf('Concentration Distribution, t =%6.1f days',t/(3600.*24)));
+        title(sprintf('Concentration Distribution, t =%6.1f years',t/(3600.*24.*365)));
         drawnow
-        whereToStore=fullfile(DirectoryPath,['Concentration Distribution - Days_' num2str(ctr) '.jpeg']);
+        whereToStore=fullfile(DirectoryPath,['Concentration Distribution_' num2str(ctr) '.jpeg']);
         saveas(gcf, whereToStore);
     end
     % Graphical video 

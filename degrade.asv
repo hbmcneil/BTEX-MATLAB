@@ -40,11 +40,11 @@ for i =1:size(c_aq_old,1)
     end
     
     c_a_tot(i,:) = c_a(i,:) + (1./fcfa).*c_c(i,:);
-    c_b_tot(i,:) = c_b(i,:) + sum((1./fcfb).*c_c(i,:));
+    c_b_tot(i,:) = c_b(i,:) + sum((1./fcfa).*c_c(i,:));
     
    end
    
-   [a,n_napl] = equilibrate(c_a(i,1:24), n_napl_old, poros, Si, rho, MW, dx, A);
+   [a,n_napl] = equilibrate(c_a(i,1:24), n_napl, poros, Si, rho, MW, dx, A);
     c_aq(i,1:24) = a;
     c_aq(i,25) = c_b(i,:);
 end
