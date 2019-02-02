@@ -42,7 +42,7 @@ for i=1:size(c_aq_old,1)
     if sum(n_napl(i,:)) > 0 
        c_aq(i,:) = Si.*n_napl(i,:)./sum(n_napl(i,:));
     else 
-       c_aq(i,:) = n_tot./poros*dx*A;
+       c_aq(i,:) = c_aq(i,:) + n_napl(i,:)./poros*dx*A;
     end
     
 end

@@ -8,22 +8,25 @@
 
 clear all
 
-DirectoryPath ='C:\Users\Kita\Documents\GitHub\BTEX-MATLAB\Figures';
+DirectoryPath ='C:\Users\Kita\Documents\GitHub\Figures';
 
 % Transport Coefficients
 m_tot = 8000;       % total mass of NAPL [kg]
-c_in = 0.2502;      % Dissolved oxygen inflow concentration [mol/m3]
+c_in = 8;           % Dissolved oxygen inflow concentration [mg/L]
+MW_O = 32;          % Molar mass of oxygen [mol/g]
+c_in = c_in./MW_O;  % Dissolved oxygen inflow concentration [mol/m3]
 
 L = 10;             % length of aquifer [m] 
 W = 20;             % width of aquifer [m]
 H = 2;              % depth [m] 
 poros = 0.35;       % porosity [-]
-q = 1.1574e-05;     % Specific Discharge [m/s]
+q = 1;              % Specific Discharge [m/day]
+q = q./(3600.*24);  % Specific Discharge [m/s]
 alpha = 0.01;       % Longitudinal Dispersivity [m]
 Dp = 1e-9;          % pore diffusion coefficient [m2/s] -- assumed
 
 tin = 0;            % begin time [s]
-te = 3600*(24*);  % end time [s]
+te = 3600*(24*365*25);  % end time [s]
 
 % Derived Coefficients
 A = H*W;            % area [m2]
@@ -44,6 +47,7 @@ D = alpha*v+Dp;     % dispersion coefficient [m2/s]
 dx = 4*D/v;
 % Solve for dt
 dt = dx/v;
+
 
 x=0.5*dx:dx:L;
 nx = length(x);
@@ -92,7 +96,7 @@ for t=dt:dt:te
     % number. Concentrations fluxes occur at cell boundaries. 
     % The first box receives the inflow concentration.
     
-    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));
+    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
     c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
     
     % =====================================================================
@@ -132,16 +136,16 @@ for t=dt:dt:te
     set(gca,'DefaultTextFontSize',18);
     
 %    Graphical output every 10 minutes
-    if mod(ctr,259930)==0
+    if mod(ctr,3000)==0
         figure(1)
         plot(x,c_aq./[c_aq_i(1,1:24),c_in(:,25)]);
         xlabel('Distance [m]');
         ylabel('Normalized Concentration c/c_0 [-]');
-        ylim([0 2]);
+%         ylim([0 15]);
         legend(compound, 'Location', 'eastoutside')
         title(sprintf('Concentration Distribution, t =%6.1f years',t/(3600.*24.*365)));
         drawnow
-        whereToStore=fullfile(DirectoryPath,['Concentration Distribution_' num2str(ctr) '.jpeg']);
+        whereToStore=fullfile(DirectoryPath,['Concentration Distribution - Years_' num2str(ctr) '.jpeg']);
         saveas(gcf, whereToStore);
     end
     % Graphical video 
@@ -162,9 +166,9 @@ end
 set(groot,'defaultAxesColorOrder',co([1:8,25],:))
 figure(2)
 subplot(2,2,1)
-plot([dt:dt:te]/3600,BTC(:,[1:8,25])./[c_aq_i(1,1:8),c_in(:,25)])
+plot([dt:dt:te]/(3600.*24.*365),BTC(:,[1:8,25])./[c_aq_i(1,1:8),c_in(:,25)])
 % plot([dt:dt:te]/3600,BTC(:,[1:8,25]))
-xlabel('t [h]')
+xlabel('t [years]')
 ylabel('c/c_0 [-]')
 legend(compound(:,[1:8,25]), 'Location', 'eastoutside')
 title('Breakthrough Curve - Alkanes')
@@ -172,8 +176,8 @@ title('Breakthrough Curve - Alkanes')
 % Alkene subplot
 set(groot,'defaultAxesColorOrder',co([9:15,25],:))
 subplot(2,2,2)
-plot([dt:dt:te]/3600,BTC(:,[9:15,25])./[c_aq_i(1,9:15),c_in(:,25)])
-xlabel('t [h]')
+plot([dt:dt:te]/(3600.*24.*365),BTC(:,[9:15,25])./[c_aq_i(1,9:15),c_in(:,25)])
+xlabel('t [years]')
 ylabel('c/c_0 [-]')
 legend(compound(:,[9:15,25]), 'Location', 'eastoutside')
 title('Breakthrough Curve - Alkenes')
@@ -181,8 +185,8 @@ title('Breakthrough Curve - Alkenes')
 % BTEX subplot 
 set(groot,'defaultAxesColorOrder',co([16:19,25],:))
 subplot(2,2,3)
-plot([dt:dt:te]/3600,BTC(:,[16:19,25])./[c_aq_i(1,16:19),c_in(:,25)])
-xlabel('t [h]')
+plot([dt:dt:te]/(3600.*24.*365),BTC(:,[16:19,25])./[c_aq_i(1,16:19),c_in(:,25)])
+xlabel('t [years]')
 ylabel('c/c_0 [-]')
 legend(compound(:,[16:19,25]), 'Location', 'eastoutside')
 title('Breakthrough Curve - BTEX')
@@ -190,8 +194,8 @@ title('Breakthrough Curve - BTEX')
 % Additive subplot 
 set(groot,'defaultAxesColorOrder',co([20:25],:))
 subplot(2,2,4)
-plot([dt:dt:te]/3600,BTC(:,20:25)./[c_aq_i(1,20:24),c_in(:,25)])
-xlabel('t [h]')
+plot([dt:dt:te]/(3600.*24.*365),BTC(:,20:25)./[c_aq_i(1,20:24),c_in(:,25)])
+xlabel('t [years]')
 ylabel('c/c_0 [-]')
 legend(compound(:,20:25), 'Location', 'eastoutside')
 title('Breakthrough Curve - Additives')
