@@ -48,7 +48,6 @@ dx = 4*D/v;
 % Solve for dt
 dt = dx/v;
 
-
 x=0.5*dx:dx:L;
 nx = length(x);
 
@@ -77,7 +76,6 @@ BTC=zeros(0,ncomp);
 % Open figure and delete its content
 figure(1);clf
 
-% 
 % Open video 
 % v = VideoWriter('transport_model.avi');
 % open(v);
@@ -123,7 +121,7 @@ for t=dt:dt:te
     % REACTION
     % =====================================================================
     
-    [c_aq, n_napl] = degrade(c_aq, n_napl, fcfb, fcfa, fbfa, poros, Si, rho, MW, dx, A);
+    [c_aq, n_napl] = degrade2(c_aq, n_napl, fcfb, fcfa, fbfa, poros, Si, rho, MW, dx, A);
     
     % =====================================================================
     % GRAPHICAL OUTPUT

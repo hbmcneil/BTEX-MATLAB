@@ -8,7 +8,7 @@
 
 clear all
 
-DirectoryPath ='C:\Users\Kita\Documents\GitHub\BTEX-MATLAB\Figures';
+DirectoryPath ='C:\Users\Kita\Documents\GitHub\Figures';
 
 % Transport Coefficients
 m_tot = 8000;       % total mass of NAPL [kg]
@@ -48,7 +48,6 @@ dx = 4*D/v;
 % Solve for dt
 dt = dx/v;
 
-
 x=0.5*dx:dx:L;
 nx = length(x);
 
@@ -77,7 +76,6 @@ BTC=zeros(0,ncomp);
 % Open figure and delete its content
 figure(1);clf
 
-% 
 % Open video 
 % v = VideoWriter('transport_model.avi');
 % open(v);
@@ -96,8 +94,13 @@ for t=dt:dt:te
     % number. Concentrations fluxes occur at cell boundaries. 
     % The first box receives the inflow concentration.
     
-    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
-    c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
+%     c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
+%     c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
+    
+% paper from cirpka uses seepage velocity 
+
+    c_aq(2:end,:)= c_aq(2:end,:) + dt*(v/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
+    c_aq(1,:)= c_aq(1,:) + dt*(v/dx)*(c_in - c_aq(1,:));
     
     % =====================================================================
     % DISPERSION

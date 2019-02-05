@@ -11,11 +11,11 @@ c_aq = c_aq_old;
 n_napl= n_napl_old;
 
 for i=1:size(c_aq_old,1)
-  
+   
     % evaluate total moles of compounds in cell
     n_tot = n_napl(i,:) + c_aq_old(i,:) * (poros*dx*A-sum(n_napl_old(i,:).*MW./rho));
     
-     if sum(n_napl(i,:)) <=0 || sum(n_tot) <= 0
+     if sum(n_napl_old(i,:)) <=0 || sum(n_tot) <=0
         % skip the iteration, on to next cell
         % only equilibrate if free napl phase present 
         continue

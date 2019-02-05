@@ -64,6 +64,9 @@ fcfa = carbon;
 
 fbfa = COD_prop;
 
+fa = ones.*(carbon);
+
+fb = 
 
 end
 
