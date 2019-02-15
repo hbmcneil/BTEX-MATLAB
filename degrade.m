@@ -34,32 +34,23 @@ for i =1:size(c_aq_old,1)
         
    % React hydrocarbons as ratio of compounds present in aqueous phase
     Xi = c_a(i,:)./sum(c_a(i,:));   
-%     Xi = c_a_tot(i,:)./sum(c_a_tot(i,:));   
     
     % reaction that occurs if napl compounds are greater than oxygen    
     if sum(fcfa.*c_a_tot(i,:)) < sum(Xi.*(fcfb).*c_b_tot(i,:))
-%     if all(fbfa.*c_a_tot(i,:) < Xi.*(1./fbfa).*c_b_tot(i,:))
        c_a(i,:) = zeros.*c_a_tot(i,:);
        c_b(i,:) = c_b_tot(i,:) - sum(Xi.*fbfa.*c_a_tot(i,:));
-%        c_b(i,:) = sum(Xi.*c_b_tot(i,:) - fbfa.*c_a_tot(i,:));
        c_c(i,:) = Xi.*fcfa.*c_a_tot(i,:);
               
-%     % c_a_tot = old ca + new ca + reacted compound
-%      c_a_tot(i,:) = c_a(i,1:24) + (1./fcfa).*c_c(i,:);
-%      c_b_tot(i,:) = c_b(i,:) + sum(Xi.*(1./fcfb).*c_c(i,:));
-%      
-%     % equilibration following reaction 
-%     [b,n_napl(i,1:24)] = equilibrate(c_a(i,1:24), n_napl(i,1:24), poros, Si, rho, MW, dx, A);
-%     c_a(i,1:24) = b;
-%        
     % reaction that occurs if napl compounds are greater than oxygen
     else
-       % this line is creating negative concentrations 
        c_a(i,:) = c_a_tot(i,:) - Xi.*(1./fbfa).*c_b_tot(i,:);
        c_b(i,:) = zeros.*c_b_tot(i,:);
        c_c(i,:) = Xi.*fcfb.*c_b_tot(i,:);
     end
-     
+    
+   c_a_tot(i,:) = c_a(i,1:24) + Xi.*(1./fcfa).*c_c(i,:);
+   c_b_tot(i,:) = c_b(i,:) + sum(Xi.*(1./fcfb).*c_c(i,:));  
+   
    end
    
    % equilibration following reaction 

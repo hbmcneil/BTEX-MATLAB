@@ -1,0 +1,51 @@
+% Plotting of breakthrough curves
+% Plotting at different time points using data 
+% Individual subplots for hydrocarbon type 
+
+
+loop_y = [0.01 0.1 0.2 0.3 0.4 0.5 1 2 5 10 15 20 25 30 35 40];  % Enter time in years you would like to plot
+loop_s = (loop_y.*365.*24.*3600);           % Conversion to seconds
+
+for i = 1:length(loop)
+% Alkane subplot 
+set(groot,'defaultAxesColorOrder',co([1:8,25],:))
+figure(2)
+subplot(2,2,1)
+n1 = plot([dt:dt:loop_s(:,i)]./(3600.*24.*365),BTC([1:loop_s(:,i)./dt],[1:8,25])./[c_aq_i(1,1:8),c_in(:,25)]);
+xlabel('t [years]')
+ylabel('c/c_0 [-]')
+legend(compound(:,[1:8,25]), 'Location', 'eastoutside')
+title('Breakthrough Curve - Alkanes')
+
+% Alkene subplot
+set(groot,'defaultAxesColorOrder',co([9:15,25],:))
+subplot(2,2,2)
+n2 = plot([dt:dt:loop_s(:,i)]/(3600.*24.*365),BTC([1:loop_s(:,i)./dt],[9:15,25])./[c_aq_i(1,9:15),c_in(:,25)])
+xlabel('t [years]')
+ylabel('c/c_0 [-]')
+legend(compound(:,[9:15,25]), 'Location', 'eastoutside')
+title('Breakthrough Curve - Alkenes')
+
+% BTEX subplot 
+set(groot,'defaultAxesColorOrder',co([16:19,25],:))
+subplot(2,2,3)
+n3 = plot([dt:dt:loop_s(:,i)]/(3600.*24.*365),BTC([1:loop_s(:,i)./dt],[16:19,25])./[c_aq_i(1,16:19),c_in(:,25)])
+xlabel('t [years]')
+ylabel('c/c_0 [-]')
+legend(compound(:,[16:19,25]), 'Location', 'eastoutside')
+title('Breakthrough Curve - BTEX')
+
+% Additive subplot 
+set(groot,'defaultAxesColorOrder',co([20:25],:))
+subplot(2,2,4)
+n4 = plot([dt:dt:loop_s(:,i)]/(3600.*24.*365),BTC([1:loop_s(:,i)./dt],20:25)./[c_aq_i(1,20:24),c_in(:,25)])
+xlabel('t [years]')
+ylabel('c/c_0 [-]')
+legend(compound(:,20:25), 'Location', 'eastoutside')
+title('Breakthrough Curve - Additives')
+save('data.mat');
+
+h1 = legend([n1,n2, n3, n4],{
+filename=fullfile(DirectoryPath,['Breakthrough Curve_', num2str(loop_y(:,i)),' Years.jpeg']);
+saveas(gcf, filename);
+end

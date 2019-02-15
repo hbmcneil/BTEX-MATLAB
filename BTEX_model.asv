@@ -93,9 +93,9 @@ for t=dt:dt:te
     % Advection with ability to change dt to be lower than the Courant 
     % number. Concentrations fluxes occur at cell boundaries. 
     % The first box receives the inflow concentration.
-    
-    c_aq(2:end,:)= c_aq(2:end,:) + dt*(q/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
-    c_aq(1,:)= c_aq(1,:) + dt*(q/dx)*(c_in - c_aq(1,:));
+
+    c_aq(2:end,:)= c_aq(2:end,:) + dt*(v/dx)*(c_aq(1:end-1,:) - c_aq(2:end,:));    
+    c_aq(1,:)= c_aq(1,:) + dt*(v/dx)*(c_in - c_aq(1,:));
     
     % =====================================================================
     % DISPERSION
@@ -103,6 +103,7 @@ for t=dt:dt:te
     
     % Calculation of dispersive fluxes at the interior interfaces
     Jd=(c_aq(1:end-1,:)-c_aq(2:end,:))/dx*D;
+    
     % add a dispersive flux of zero at the inflow boundary and assume that
     % the dispersive flux at the outflow is identical to that at the last
     % internal interface
@@ -121,7 +122,7 @@ for t=dt:dt:te
     % REACTION
     % =====================================================================
     
-    [c_aq, n_napl] = degrade2(c_aq, n_napl, fcfb, fcfa, fbfa, poros, Si, rho, MW, dx, A);
+    [c_aq, n_napl] = degrade(c_aq, n_napl, fcfb, fcfa, fbfa, poros, Si, rho, MW, dx, A);
     
     % =====================================================================
     % GRAPHICAL OUTPUT
@@ -134,16 +135,15 @@ for t=dt:dt:te
     set(gca,'DefaultTextFontSize',18);
     
 %    Graphical output every 10 minutes
-    if mod(ctr,3000)==0
+    if mod(ctr,6498)==0
         figure(1)
         plot(x,c_aq./[c_aq_i(1,1:24),c_in(:,25)]);
         xlabel('Distance [m]');
         ylabel('Normalized Concentration c/c_0 [-]');
-%         ylim([0 15]);
         legend(compound, 'Location', 'eastoutside')
         title(sprintf('Concentration Distribution, t =%6.1f years',t/(3600.*24.*365)));
         drawnow
-        whereToStore=fullfile(DirectoryPath,['Concentration Distribution - Years_' num2str(ctr) '.jpeg']);
+        whereToStore=fullfile(DirectoryPath,['Concentration Distribution - 50 Years_' num2str(ctr) '.jpeg']);
         saveas(gcf, whereToStore);
     end
     % Graphical video 
@@ -199,5 +199,5 @@ legend(compound(:,20:25), 'Location', 'eastoutside')
 title('Breakthrough Curve - Additives')
 save('data.mat');
   
-filename=fullfile(DirectoryPath,['Breakthrough Curve.jpeg']);
+filename=fullfile(DirectoryPath,['Breakthrough Curve_50 Years.jpeg']);
 saveas(gcf, filename);
